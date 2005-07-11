@@ -2,9 +2,10 @@
 #pragma warning ( disable : 4786 )
 #endif
 
+#include <stdlib.h> // qsort
 #include <algorithm>
 #include "float.h"
-#include "qwt3d_data.h"
+#include "qwt3d_types.h"
 
 using namespace Qwt3D;
 
@@ -121,22 +122,22 @@ void GridData::clear()
 void GridData::setSize(unsigned int columns, unsigned int rows)
 {
 	this->clear();
-	vertices = std::vector<DataColumn>(columns);
+	vertices = std::vector<DataRow>(columns);
 	{
 		for (unsigned int i=0; i!=vertices.size(); ++i)
 		{
-			vertices[i] = DataColumn(rows);
+			vertices[i] = DataRow(rows);
 			for (unsigned int j=0; j!=vertices[i].size(); ++j)
 			{
 				vertices[i][j] = new GLdouble[3];
 			}
 		}
 	}
-	normals = std::vector<DataColumn>(columns);
+	normals = std::vector<DataRow>(columns);
 	{
 		for (unsigned int i=0; i!=normals.size(); ++i)
 		{
-			normals[i] = DataColumn(rows);
+			normals[i] = DataRow(rows);
 			for (unsigned int j=0; j!=normals[i].size(); ++j)
 			{
 				normals[i][j] = new GLdouble[3];

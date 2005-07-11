@@ -10,12 +10,16 @@ namespace Qwt3D
 	A SurfacePlot ...
 	
 */
-class QWT3D_EXPORT SurfacePlot : public Qwt3D::Plot3D
+class QWT3D_EXPORT SurfacePlot : public Plot3D
 {
     Q_OBJECT
 
 public:
+#if QT_VERSION < 0x040000
   SurfacePlot( QWidget* parent = 0, const char* name = 0 );
+#else
+  SurfacePlot( QWidget * parent = 0, const QGLWidget * shareWidget = 0 );
+#endif  
   ~SurfacePlot();
 	void updateNormals(); //!< Recalculates surface normals;
 	int	resolution() const {return resolution_p;} //!< Returns data resolution (1 means all data)
@@ -81,6 +85,7 @@ protected:
   virtual void createData();
   virtual void createEnrichment(Qwt3D::Enrichment& p);
 	virtual void createFloorData();
+ 	void createNormals();
 	void createPoints();	
 
 	int resolution_p;
@@ -94,8 +99,7 @@ protected:
   //void calcLowResolution();
 private:
 
-  void drawIntersection(const Qwt3D::TripleField& intersection, Qwt3D::RGBA col);
-  void Data2Floor();
+	void Data2Floor();
 	void Isolines2Floor();
 	
   Qwt3D::FLOORSTYLE floorstyle_;

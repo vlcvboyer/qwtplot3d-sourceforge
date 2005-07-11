@@ -12,10 +12,21 @@ using namespace Qwt3D;
 /*!
   This should be the first call in your derived classes constructors.  
 */
+#if QT_VERSION < 0x040000
 Plot3D::Plot3D( QWidget* parent, const char* name )
-    : ExtGLWidget( parent, name )
+    : QGLWidget( parent, name )
+#else
+Plot3D::Plot3D( QWidget * parent, const QGLWidget * shareWidget)
+    : QGLWidget( parent, shareWidget) 
+#endif
 {  
   initializedGL_ = false;
+  xRot_ = yRot_ = zRot_ = 0.0;		// default object rotation
+  
+	xShift_ = yShift_ = zShift_ = xVPShift_ = yVPShift_ = 0.0;
+	xScale_ = yScale_ = zScale_ = 1.0;
+	zoom_ = 1;
+	ortho_ = true;
 	plotstyle_ = FILLEDMESH;
   userplotstyle_p = 0;
 	shading_ = GOURAUD;
@@ -24,6 +35,10 @@ Plot3D::Plot3D( QWidget* parent, const char* name )
 	displaylegend_ = false;
 	smoothdatamesh_p = false;
   actualData_p = 0;
+
+	lastMouseMovePosition_ = QPoint(0,0);
+	mpressed_ = false;
+	mouse_input_enabled_ = true;
 
 	setPolygonOffset(0.5);
 	setMeshColor(RGBA(0.0,0.0,0.0));
@@ -42,7 +57,57 @@ Plot3D::Plot3D( QWidget* parent, const char* name )
 
 	setTitlePosition(0.95);
 	
+  kbd_input_enabled_ = true;
+
+#if QT_VERSION < 0x040000
   setFocusPolicy(QWidget::StrongFocus);
+  assignMouse(Qt::LeftButton, 
+							Qt::LeftButton | Qt::ShiftButton,
+							Qt::LeftButton, 
+							Qt::LeftButton | Qt::AltButton, 
+							Qt::LeftButton | Qt::AltButton, 
+							Qt::LeftButton | Qt::AltButton | Qt::ShiftButton,
+							Qt::LeftButton | Qt::AltButton | Qt::ControlButton,
+							Qt::LeftButton | Qt::ControlButton, 
+							Qt::LeftButton | Qt::ControlButton);
+
+
+  assignKeyboard(Qt::Key_Down, Qt::Key_Up,
+    Qt::ShiftButton + Qt::Key_Right, Qt::ShiftButton + Qt::Key_Left,
+    Qt::Key_Right, Qt::Key_Left,
+    Qt::AltButton + Qt::Key_Right, Qt::AltButton + Qt::Key_Left,
+    Qt::AltButton + Qt::Key_Down, Qt::AltButton + Qt::Key_Up,
+    Qt::AltButton + Qt::ShiftButton + Qt::Key_Down, Qt::AltButton + Qt::ShiftButton + Qt::Key_Up,
+    Qt::AltButton + Qt::ControlButton + Qt::Key_Down, Qt::AltButton + Qt::ControlButton + Qt::Key_Up,
+    Qt::ControlButton + Qt::Key_Right, Qt::ControlButton + Qt::Key_Left,
+    Qt::ControlButton + Qt::Key_Down, Qt::ControlButton + Qt::Key_Up
+   );
+#else
+  setFocusPolicy(Qt::StrongFocus);
+  assignMouse(Qt::LeftButton, 
+							MouseState(Qt::LeftButton, Qt::ShiftModifier),
+							Qt::LeftButton, 
+							MouseState(Qt::LeftButton, Qt::AltModifier), 
+							MouseState(Qt::LeftButton, Qt::AltModifier), 
+							MouseState(Qt::LeftButton, Qt::AltModifier | Qt::ShiftModifier),
+							MouseState(Qt::LeftButton, Qt::AltModifier | Qt::ControlModifier),
+							MouseState(Qt::LeftButton, Qt::ControlModifier), 
+							MouseState(Qt::LeftButton, Qt::ControlModifier)
+              );
+
+
+  assignKeyboard(Qt::Key_Down, Qt::Key_Up,
+    KeyboardState(Qt::Key_Right, Qt::ShiftModifier), KeyboardState(Qt::Key_Left, Qt::ShiftModifier),
+    Qt::Key_Right, Qt::Key_Left,
+    KeyboardState(Qt::Key_Right, Qt::AltModifier), KeyboardState(Qt::Key_Left, Qt::AltModifier),
+    KeyboardState(Qt::Key_Down, Qt::AltModifier), KeyboardState(Qt::Key_Up, Qt::AltModifier),
+    KeyboardState(Qt::Key_Down, Qt::AltModifier|Qt::ShiftModifier), KeyboardState(Qt::Key_Up, Qt::AltModifier|Qt::ShiftModifier),
+    KeyboardState(Qt::Key_Down, Qt::AltModifier|Qt::ControlModifier), KeyboardState(Qt::Key_Up, Qt::AltModifier|Qt::ControlModifier),
+    KeyboardState(Qt::Key_Right, Qt::ControlModifier), KeyboardState(Qt::Key_Left, Qt::ControlModifier),
+    KeyboardState(Qt::Key_Down, Qt::ControlModifier), KeyboardState(Qt::Key_Up, Qt::ControlModifier)
+   );
+#endif
+  setKeySpeed(3,5,5);
 
 	legend_.setLimits(0, 100);
 	legend_.setMajors(10);
@@ -60,8 +125,7 @@ Plot3D::Plot3D( QWidget* parent, const char* name )
 
 Plot3D::~Plot3D()
 {
-	makeCurrent();
-  SaveGlDeleteLists( displaylists_p[0], displaylists_p.size() );
+	SaveGlDeleteLists( displaylists_p[0], displaylists_p.size() );
 	datacolor_p->destroy();
   delete userplotstyle_p;
   for (ELIT it = elist_p.begin(); it!=elist_p.end(); ++it)
@@ -132,33 +196,33 @@ void Plot3D::paintGL()
 	
 	glLoadIdentity();
 
-  glRotatef( xRotation()-90, 1.0, 0.0, 0.0 ); 
-  glRotatef( yRotation(), 0.0, 1.0, 0.0 ); 
-  glRotatef( zRotation(), 0.0, 0.0, 1.0 );
+  glRotatef( xRot_-90, 1.0, 0.0, 0.0 ); 
+  glRotatef( yRot_, 0.0, 1.0, 0.0 ); 
+  glRotatef( zRot_, 0.0, 0.0, 1.0 );
 
-	glScalef( zoom() * xScale(), zoom() * yScale(), zoom() * zScale() );
+	glScalef( zoom_ * xScale_, zoom_ * yScale_, zoom_ * zScale_ );
 	
-	glTranslatef(xShift()-center.x, yShift()-center.y, zShift()-center.z);
+	glTranslatef(xShift_-center.x, yShift_-center.y, zShift_-center.z);
   
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
 
 	if (beg != end)
 	{		
-		if (ortho())
+		if (ortho_)
 			glOrtho( -radius, +radius, -radius, +radius, 0, 40 * radius);
 		else
 			glFrustum( -radius, +radius, -radius, +radius, 5 * radius, 400 * radius );
 	}
 	else
 	{
-		if (ortho())
+		if (ortho_)
 			glOrtho( -1.0, 1.0, -1.0, 1.0, 10.0, 100.0 );
 		else
 			glFrustum( -1.0, 1.0, -1.0, 1.0, 10.0, 100.0 );
 	}
 
-  glTranslatef( xViewportShift() * 2 * radius , yViewportShift() * 2 * radius , -7 * radius );
+  glTranslatef( xVPShift_ * 2 * radius , yVPShift_ * 2 * radius , -7 * radius );
   
   if (lighting_enabled_)
     glEnable(GL_NORMALIZE);
@@ -236,8 +300,19 @@ void Plot3D::setDataColor( Color* col )
 
 	datacolor_p->destroy();
 	datacolor_p = col;
-//  if ( displaylegend_ )
-//    datacolor_p->createVector(legend_.colors);
+}
+
+/*!
+  Set up ortogonal or perspective mode and updates widget
+*/
+void Plot3D::setOrtho( bool val )
+{
+	if (val == ortho_)
+		return;
+	ortho_ = val;
+	updateGL();
+	
+	emit projectionChanged(val);
 }
 
 /*!

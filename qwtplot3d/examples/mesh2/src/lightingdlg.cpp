@@ -92,13 +92,18 @@ Pointer::Pointer(double rad)
   configure(rad);
 }
 
+Pointer::~Pointer()
+{
+}
+
 void Pointer::configure(double rad)
 {
   plot = 0;
+  
   radius_ = rad;
 }
 
-void Pointer::draw()
+void Pointer::drawBegin()
 {
   GLint mode;
 	glGetIntegerv(GL_MATRIX_MODE, &mode);
@@ -117,9 +122,14 @@ void Pointer::draw()
 
 
 LightingDlg::LightingDlg(QWidget *parent)
-:lightingdlgbaseBase(parent)
+:LightingBase(parent)
 {
-  QGridLayout *grid = new QGridLayout( frame, 0, 0, 1 );
+#if QT_VERSION < 0x040000
+  QGridLayout *grid = new QGridLayout( frame, 0, 0 );
+#else
+  setupUi(this);
+  QGridLayout *grid = new QGridLayout( frame);
+#endif
 
   dataPlot = 0;
   

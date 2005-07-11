@@ -68,7 +68,7 @@ LinearAutoScaler::LinearAutoScaler()
 }
 //! Initialize with interval [0,1] and one requested interval 
 /*!
-\param mantisse A increasing ordered vector of values representing 
+val mantisse A increasing ordered vector of values representing 
 mantisse values between 1 and 9. 
 */
 LinearAutoScaler::LinearAutoScaler(std::vector<double>& mantisse)
