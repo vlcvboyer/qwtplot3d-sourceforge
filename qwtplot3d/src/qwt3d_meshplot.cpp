@@ -138,6 +138,9 @@ void SurfacePlot::Isolines2FloorC()
 		return;
 
 	double step = (actualData_p->hull().maxVertex.z - actualData_p->hull().minVertex.z) / isolines();		
+
+	RGBA col;
+
 	double zshift = actualData_p->hull().minVertex.z;
 		
 	TripleField nodes;
@@ -176,12 +179,40 @@ void SurfacePlot::Isolines2FloorC()
 					}
 					
 					lambda =  (val - nodes[m].z) / diff;
-					//intersection.push_back(Triple(nodes[m].x + lambda * (nodes[mm].x-nodes[m].x), nodes[m].y + lambda * (nodes[mm].y-nodes[m].y), val));
-					intersection.push_back(Triple(nodes[m].x + lambda * (nodes[mm].x-nodes[m].x), nodes[m].y + lambda * (nodes[mm].y-nodes[m].y), zshift));
+					intersection.push_back(Triple(nodes[m].x + lambda * (nodes[mm].x-nodes[m].x), nodes[m].y + lambda * (nodes[mm].y-nodes[m].y), val));
 				}
 			}
-      drawIntersection(intersection, (*datacolor_p)(nodes[0].x,nodes[0].y,nodes[0].z));
-			intersection.clear();
+
+			if (!intersection.empty())
+			{
+				col = (*datacolor_p)(nodes[0].x,nodes[0].y,nodes[0].z);
+  			glColor4d(col.r, col.g, col.b, col.a);
+				if (intersection.size()>2)
+				{
+					glBegin(GL_LINE_STRIP);
+					for (unsigned dd = 0; dd!=intersection.size(); ++dd)
+					{
+						glVertex3d(intersection[dd].x, intersection[dd].y, zshift);
+					}
+					glEnd();
+					glBegin(GL_POINTS);
+						glVertex3d(intersection[0].x,intersection[0].y,zshift);
+					glEnd();
+				}
+				else if (intersection.size() == 2)
+				{
+					glBegin(GL_LINES);
+						glVertex3d(intersection[0].x,intersection[0].y,zshift);
+						glVertex3d(intersection[1].x,intersection[1].y,zshift);
+						
+						// small pixel gap problem (see OpenGL spec.)
+						glVertex3d(intersection[1].x,intersection[1].y,zshift);
+						glVertex3d(intersection[0].x,intersection[0].y,zshift);
+					glEnd();
+				}
+				
+				intersection.clear();
+			}
 		}
 	}
 }
