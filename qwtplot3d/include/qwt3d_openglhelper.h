@@ -1,7 +1,12 @@
 #ifndef __openglhelper_2003_06_06_15_49__
 #define __openglhelper_2003_06_06_15_49__
 
+#include "qglobal.h"
+#if QT_VERSION < 0x040000
 #include <qgl.h>
+#else
+#include <QtOpenGL/qgl.h>
+#endif
 
 namespace Qwt3D
 {
@@ -64,11 +69,11 @@ inline const GLubyte* gl_error()
 	return err;
 }
 
-inline	void SaveGlDeleteLists(GLuint& list, GLsizei range)
+inline	void SaveGlDeleteLists(GLuint& lstidx, GLsizei range)
 {
-	if (glIsList(list))
-		glDeleteLists(list, range);
-	list = 0;
+	if (glIsList(lstidx))
+		glDeleteLists(lstidx, range);
+	lstidx = 0;
 }
 
 //! get OpenGL transformation matrices

@@ -1,38 +1,37 @@
 # pro file for building the makefile for qwtplot3d
 #
 
-
 TARGET            = qwtplot3d
 TEMPLATE          = lib
-CONFIG           += qt warn_on opengl thread zlib
+CONFIG           += qt warn_on opengl thread zlib debug
 MOC_DIR           = tmp
 OBJECTS_DIR       = tmp
 INCLUDEPATH       = include
 DEPENDPATH        = include src
 DESTDIR      			= lib
-#DESTDIR      			= ../../lib
-#QT += opengl
+#DESTDIR      			= ../../../lib
+QT += opengl
 
 win32:TEMPLATE    = vclib
-win32:CONFIG     += dll 
-win32:DEFINES    += QT_DLL QWT3D_DLL QWT3D_MAKEDLL
-win32:QMAKE_CXXFLAGS     += $$QMAKE_CFLAGS_STL -GX
+win32:CONFIG     += dll exceptions
+win32:dll:DEFINES    += QT_DLL QWT3D_DLL QWT3D_MAKEDLL
+win32:QMAKE_CXXFLAGS     += $$QMAKE_CFLAGS_STL
 
 # Comment the next line, if you have zlib on your windows system
-# win32:CONFIG -= zlib
+win32:CONFIG -= zlib
 
 linux-g++:TMAKE_CXXFLAGS += -fno-exceptions
-unix:VERSION = 0.3.0
+unix:VERSION = 0.2.6
 
 # Input
 SOURCES += src/qwt3d_axis.cpp \
            src/qwt3d_color.cpp \
            src/qwt3d_coordsys.cpp \
-           src/qwt3d_data.cpp \
            src/qwt3d_drawable.cpp \
+           src/qwt3d_mousekeyboard.cpp \
+           src/qwt3d_movements.cpp \
            src/qwt3d_lighting.cpp \
            src/qwt3d_colorlegend.cpp \
-           src/qwt3d_extglwidget.cpp \
            src/qwt3d_plot.cpp \
            src/qwt3d_label.cpp \
            src/qwt3d_types.cpp \
@@ -56,13 +55,11 @@ HEADERS += include/qwt3d_color.h \
            include/qwt3d_types.h \
 	         include/qwt3d_axis.h \
            include/qwt3d_coordsys.h \
-           include/qwt3d_data.h \
            include/qwt3d_drawable.h \
            include/qwt3d_helper.h \
            include/qwt3d_label.h \
            include/qwt3d_openglhelper.h \
            include/qwt3d_colorlegend.h \
-           include/qwt3d_extglwidget.h \
            include/qwt3d_plot.h \
            include/qwt3d_enrichment.h \
            include/qwt3d_enrichment_std.h \
@@ -70,7 +67,8 @@ HEADERS += include/qwt3d_color.h \
            include/qwt3d_autoptr.h \
            include/qwt3d_io.h \
            include/qwt3d_io_reader.h \
-           include/qwt3d_scale.h
+           include/qwt3d_scale.h \
+           include/qwt3d_portability.h
 						
 HEADERS += include/qwt3d_mapping.h \
 					 include/qwt3d_gridmapping.h \
