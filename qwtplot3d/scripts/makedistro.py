@@ -7,19 +7,19 @@ from time import gmtime, strftime
 
 refuseddirs = ['CVS','Debug','Release','moc','obj','tmp','data','hannes','doc','lib','bin']
 refusedfiles = ['Makefile','.cvsignore','gl2psTest.c','gl2ps.bat','gl2ps.pro']
-requiredfiles = ['license.txt','qwtplot3d.dsw','examples.dsw','thesis.tex','valgr.sh','qwtplot3d.supp','install.nsi']
-requiredfiletypes = ['pro','bat','cpp','c','h','ui','ts','png','rc','ico','py']
+requiredfiles = ['qwtplot3d.dsw','examples.dsw','qwtplot3d.sln','examples.sln','thesis.tex','valgr.sh','qwtplot3d.supp','install.nsi']
+requiredfiletypes = ['pro','bat','cpp','c','h','ui','ts','png','rc','ico','py','qrc']
 srcfiletypes = ['cpp','c','h']
 
-source = 'V:\\\\cvs\\qwtplot3d\\'
+source = 'V:\\\\cvs\\porting24\\qwtplot3d\\'
 
-tstr = strftime("%y%m%d", gmtime())
-tarname = 'V:\\\\cvs\\uploads\\' + tstr + 'plot3d.tgz'
-zipname = 'V:\\\\cvs\\uploads\\' + tstr + 'plot3d.zip'
+#tstr = strftime("%y%m%d", gmtime())
+#tarname = 'V:\\\\cvs\\uploads\\' + tstr + 'plot3d.tgz'
+#zipname = 'V:\\\\cvs\\uploads\\' + tstr + 'plot3d.zip'
 
-#refuseddirs.append('scripts')
-#tarname = 'V:\\\\cvs\\uploads\\qwtplot3d-0.2.4-beta.tgz'
-#zipname = 'V:\\\\cvs\\uploads\\qwtplot3d-0.2.4-beta.zip'
+refuseddirs.append('scripts')
+tarname = 'V:\\\\cvs\\uploads\\qwtplot3d-0.2.6.tgz'
+zipname = 'V:\\\\cvs\\uploads\\qwtplot3d-0.2.6.zip'
 
 
 
