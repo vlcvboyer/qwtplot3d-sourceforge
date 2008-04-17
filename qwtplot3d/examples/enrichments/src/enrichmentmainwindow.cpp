@@ -15,7 +15,7 @@ class Hat : public Function
 {
 public:
 
-	Hat(GridPlot& pw)
+	Hat(SurfacePlot& pw)
 	:Function(pw)
 	{
 	}
@@ -33,9 +33,15 @@ Hat* hat;
 EnrichmentMainWindow::EnrichmentMainWindow( QWidget* parent )
 	: DummyBase( parent )
 {
+#if QT_VERSION < 0x040000
+	setCaption("enrichment");
+  QGridLayout *grid = new QGridLayout( frame, 0, 0 );
+#else
   setupUi(this);
   QGridLayout *grid = new QGridLayout( frame);
-  plot = new GridPlot(frame);
+#endif
+
+  plot = new SurfacePlot(frame);
   grid->addWidget( plot, 0, 0 );
 
   plot->setTitle("Bar Style (Vertex Enrichment)");
@@ -77,7 +83,7 @@ EnrichmentMainWindow::EnrichmentMainWindow( QWidget* parent )
   width_ = 0.007;
   connect( levelSlider, SIGNAL(valueChanged(int)), this, SLOT(setLevel(int)) );
 
-//  connect( barBtn, SIGNAL(clicked()), this, SLOT(barSlot()) );
+  //connect( barBtn, SIGNAL(clicked()), this, SLOT(barSlot()) );
   //connect( sliceBtn, SIGNAL(clicked()), this, SLOT(sliceSlot()) );
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

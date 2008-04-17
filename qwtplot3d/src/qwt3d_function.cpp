@@ -1,4 +1,4 @@
-#include "qwt3d_gridplot.h"
+#include "qwt3d_surfaceplot.h"
 #include "qwt3d_function.h"
 
 using namespace Qwt3D;
@@ -8,36 +8,36 @@ Function::Function()
 {
 }
 
-Function::Function(GridPlot& pw)
+Function::Function(SurfacePlot& pw)
 :GridMapping()
 {
   plotwidget_p = &pw;
 }
 
-Function::Function(GridPlot* pw)
+Function::Function(SurfacePlot* pw)
 :GridMapping()
 {
   plotwidget_p = pw;
 }
 
-void Function::assign(GridPlot& plotWidget)
+void Function::assign(SurfacePlot& plotWidget)
 {
 	if (&plotWidget != plotwidget_p)
 		plotwidget_p = &plotWidget;
 }
 
-void Function::assign(GridPlot* plotWidget)
+void Function::assign(SurfacePlot* plotWidget)
 {
 	if (plotWidget != plotwidget_p)
 		plotwidget_p = plotWidget;
 }
 
-void Function::setMinZ(double val)
+void Function::	setMinZ(double val)
 {
 	range_p.minVertex.z = val;
 }
 
-void Function::setMaxZ(double val)
+void Function::	setMaxZ(double val)
 {
 	range_p.maxVertex.z = val;
 }
@@ -53,7 +53,7 @@ bool Function::create()
 	unsigned i,j;
 	for ( i = 0; i < umesh_p; i++) 
 	{
-		data[i] = new double [vmesh_p];
+		data[i]         = new double [vmesh_p];
 	}
 	
 	/* get the data */
@@ -81,7 +81,7 @@ bool Function::create()
 	}
 	else
 	{
-		((GridPlot*)plotwidget_p)->appendDataSet(data, umesh_p, vmesh_p, minu_p, maxu_p, minv_p, maxv_p);
+		((SurfacePlot*)plotwidget_p)->loadFromData(data, umesh_p, vmesh_p, minu_p, maxu_p, minv_p, maxv_p);
 	}
 
 	for ( i = 0; i < umesh_p; i++) 
@@ -94,7 +94,7 @@ bool Function::create()
 	return true;
 }
 
-bool Function::create(GridPlot& pl)
+bool Function::create(SurfacePlot& pl)
 {
   assign(pl);
   return create();

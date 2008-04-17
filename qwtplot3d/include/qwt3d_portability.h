@@ -5,6 +5,22 @@
 
 #include <qnamespace.h>
 #include "qwt3d_global.h"
+
+#if QT_VERSION < 0x040000
+
+namespace Qwt3D
+{
+  #define QWT3DLOCAL8BIT(qstring) \
+  ((const char*)(qstring.local8Bit()))
+
+  typedef int MouseState;
+  typedef int KeyboardState;
+  const Qt::TextFlags SingleLine = Qt::SingleLine;
+} // ns
+
+
+#else // Qt4
+
 #include <QMouseEvent>
 
 namespace Qwt3D
@@ -68,5 +84,8 @@ namespace Qwt3D
     Qt::KeyboardModifiers km_;
   };
 } // ns
+
+#endif
+
 
 #endif

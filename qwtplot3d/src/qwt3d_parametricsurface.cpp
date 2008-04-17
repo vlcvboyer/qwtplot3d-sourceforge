@@ -1,5 +1,5 @@
 #include "qwt3d_parametricsurface.h"
-#include "qwt3d_gridplot.h"
+#include "qwt3d_surfaceplot.h"
 
 using namespace Qwt3D;
 
@@ -8,7 +8,7 @@ ParametricSurface::ParametricSurface()
 {
 }
 
-ParametricSurface::ParametricSurface(GridPlot& pw)
+ParametricSurface::ParametricSurface(SurfacePlot& pw)
 :GridMapping()
 {
 	plotwidget_p = &pw;
@@ -16,7 +16,7 @@ ParametricSurface::ParametricSurface(GridPlot& pw)
   vperiodic_ = false;
 }
 
-ParametricSurface::ParametricSurface(GridPlot* pw)
+ParametricSurface::ParametricSurface(SurfacePlot* pw)
 :GridMapping()
 {
 	plotwidget_p = pw;
@@ -30,13 +30,13 @@ void ParametricSurface::setPeriodic(bool u, bool v)
   vperiodic_ = v;
 }
 
-void ParametricSurface::assign(GridPlot& plotWidget)
+void ParametricSurface::assign(SurfacePlot& plotWidget)
 {
 	if (&plotWidget != plotwidget_p)
 		plotwidget_p = &plotWidget;
 }
 
-void ParametricSurface::assign(GridPlot* plotWidget)
+void ParametricSurface::assign(SurfacePlot* plotWidget)
 {
 	if (plotWidget != plotwidget_p)
 		plotwidget_p = plotWidget;
@@ -85,7 +85,7 @@ bool ParametricSurface::create()
 		}
 	}
 
-	((GridPlot*)plotwidget_p)->appendDataSet(data, umesh_p, vmesh_p, uperiodic_, vperiodic_);
+	((SurfacePlot*)plotwidget_p)->loadFromData(data, umesh_p, vmesh_p, uperiodic_, vperiodic_);
 
 	for ( i = 0; i < umesh_p; i++) 
 	{
@@ -97,7 +97,7 @@ bool ParametricSurface::create()
 	return true;
 }
 
-bool ParametricSurface::create(GridPlot& pl)
+bool ParametricSurface::create(SurfacePlot& pl)
 {
   assign(pl);
   return create();

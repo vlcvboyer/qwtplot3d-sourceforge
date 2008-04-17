@@ -57,7 +57,7 @@ void ColorLegend::setAutoScale(bool val)
 	axis_.setAutoScale(val);
 }
 
-void ColorLegend::setScale(Qwt3D::SCALETYPE val)
+void ColorLegend::setScale(SCALETYPE val)
 {
 	axis_.setScale(val);
 }

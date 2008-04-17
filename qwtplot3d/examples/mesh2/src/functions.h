@@ -12,7 +12,7 @@ class Rosenbrock : public Function
 {
 public:
 
-	Rosenbrock(GridPlot& pw)
+	Rosenbrock(SurfacePlot& pw)
 	:Function(pw)
 	{
 	}
@@ -28,7 +28,7 @@ class Hat : public Function
 {
 public:
 
-	Hat(GridPlot& pw)
+	Hat(SurfacePlot& pw)
 	:Function(pw)
 	{
 		//setMinZ(0.3);     
@@ -47,7 +47,7 @@ class Ripple : public Function
 {
 public:
 
-	Ripple(GridPlot& pw)
+	Ripple(SurfacePlot& pw)
 	:Function(pw)
 	{
 		double l = 12; 
@@ -85,7 +85,7 @@ public:
 	Mex()
 	:Function()
 	{
-	//	setMaxZ(0.8);
+	//	setMaxZ(0.8);     
 	}
 	
 	double operator()(double x, double y)
@@ -104,7 +104,7 @@ class Torus : public ParametricSurface
 {
 public:
 
-  Torus(GridPlot& pw)
+  Torus(SurfacePlot& pw)
   :ParametricSurface(pw)
   {
     setMesh(41,31);
@@ -128,7 +128,7 @@ class Seashell : public ParametricSurface
 {
 public:
 
-  Seashell(GridPlot& pw)
+  Seashell(SurfacePlot& pw)
   :ParametricSurface(pw)
   {
     setMesh(41,131);
@@ -158,7 +158,7 @@ class Boy : public ParametricSurface
 {
 public:
 
-  Boy(GridPlot& pw)
+  Boy(SurfacePlot& pw)
   :ParametricSurface(pw)
   {
     setMesh(141,131);
@@ -185,7 +185,7 @@ class Dini : public ParametricSurface
 {
 public:
 
-  Dini(GridPlot& pw)
+  Dini(SurfacePlot& pw)
   :ParametricSurface(pw)
   {
     setMesh(141,35);
@@ -208,5 +208,7 @@ public:
     return Triple(x,y,z);
   }
 };
+
+void createCone(Qwt3D::TripleField& conepos, Qwt3D::CellField& conecell);
 
 #endif

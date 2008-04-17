@@ -8,7 +8,6 @@
 #include <qapplication.h>
 #include "enrichmentmainwindow.h"
 
-
 int main( int argc, char** argv )
 {
 	QApplication app( argc, argv );
@@ -21,6 +20,10 @@ int main( int argc, char** argv )
 
 	EnrichmentMainWindow mainwindow;
 	
+#if QT_VERSION < 0x040000
+  app.setMainWidget(&mainwindow);
+#endif
+
 	mainwindow.show();
 
 	return app.exec();

@@ -7,5 +7,10 @@ SOURCES =  src/main.cpp \
 HEADERS =  src/enrichmentmainwindow.h \
 					 src/enrichments.h 
 	 
-FORMS =  src/enrichmentmainwindowbase.ui
+!isEmpty( ISQT4 ) {
+  FORMS =  src/enrichmentmainwindowbase4.ui
+}
+isEmpty( ISQT4 ) {
+  FORMS =  src/enrichmentmainwindowbase.ui
+}
 

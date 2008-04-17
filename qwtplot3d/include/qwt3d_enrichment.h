@@ -21,74 +21,41 @@ class QWT3D_EXPORT Enrichment
 {
 public:
   enum TYPE{
-    VERTEXENRICHMENT, //!< implemented
-    EDGEENRICHMENT,   //!< implemented
+    VERTEXENRICHMENT,
+    EDGEENRICHMENT,
     FACEENRICHMENT,
-    VOXELENRICHMENT,
-    GRAPHENRICHMENT,
-    USERENRICHMENT    //!< implemented
-  }; //!< Type of the Enrichment.
+    VOXELENRICHMENT
+  }; //!< Type of the Enrichment - only VERTEXENRICHMENT's are defined at this moment.
   
-  Enrichment() : plot_p(0) {}
+  Enrichment() : plot(0) {}
   virtual ~Enrichment(){}
   virtual Enrichment* clone() const = 0; //!< The derived class should give back a new Derived(something) here
   virtual void drawBegin(){}; //!< Empty per default. Can be overwritten.
   virtual void drawEnd(){}; //!< Empty per default. Can be overwritten.
-  virtual void assign(Plot3D const& pl) {plot_p = &pl;} //!< Assign to existent plot;
+  virtual void assign(Plot3D const& pl) {plot = &pl;} //!< Assign to existent plot;
   virtual TYPE type() const = 0; //!< Overwrite 
 
 protected:
-  const Plot3D* plot_p;
-};
-
-//! Abstract base class for user-defined visible user objects
-/**
-UserEnrichments introduce a draw routine for customized visible objects, not covered by the 
-other types design. draw() is called, when the Plot creates its internal OpenGL data representation 
-*/
-class QWT3D_EXPORT UserEnrichment : public Enrichment
-{
-public:
-  
-  UserEnrichment() : Enrichment() {}
-  virtual Enrichment* clone() const = 0; //!< The derived class should give back a new Derived(something) here
-  virtual void draw() = 0; //!< Overwrite this
-  virtual TYPE type() const {return Enrichment::USERENRICHMENT;} //!< This gives USERENRICHMENT
+  const Plot3D* plot;
 };
 
 //! Abstract base class for vertex dependent visible user objects
 /**
 VertexEnrichments introduce a specialized draw routine for vertex dependent data.
-draw() is called, when the Plot creates its internal OpenGL data representation 
-for every vertex associated to his argument.
+draw() is called, when the Plot realizes its internal OpenGL data representation 
+for every Vertex associated to his argument.
 */
 class QWT3D_EXPORT VertexEnrichment : public Enrichment
 {
 public:
   
-  VertexEnrichment() : Enrichment() {}
+  VertexEnrichment() : Qwt3D::Enrichment() {}
   virtual Enrichment* clone() const = 0; //!< The derived class should give back a new Derived(something) here
-  virtual void draw(Triple const&) = 0; //!< Overwrite this
-  virtual TYPE type() const {return Enrichment::VERTEXENRICHMENT;} //!< This gives VERTEXENRICHMENT
+  virtual void draw(Qwt3D::Triple const&) = 0; //!< Overwrite this
+  virtual TYPE type() const {return Qwt3D::Enrichment::VERTEXENRICHMENT;} //!< This gives VERTEXENRICHMENT
 };
 
-//! Abstract base class for edge dependent visible user objects
-/**
-EdgeEnrichments introduce a specialized draw routine for edge dependent data.
-draw() is called, when the Plot creates its internal OpenGL data representation 
-for every edge associated to his argument.
-*/
-class QWT3D_EXPORT EdgeEnrichment : public Enrichment
-{
-public:
-  
-  EdgeEnrichment() : Enrichment() {}
-  virtual Enrichment* clone() const = 0; //!< The derived class should give back a new Derived(something) here
-  virtual void draw(Triple const& beg, Triple const& end) = 0; //!< Overwrite this
-  virtual TYPE type() const {return Enrichment::EDGEENRICHMENT;} //!< This gives EDGEENRICHMENT
-};
-
-// todo FaceEnrichment, VoxelEnrichment etc.
+// todo EdgeEnrichment, FaceEnrichment, VoxelEnrichment etc.
 
 } // ns
 

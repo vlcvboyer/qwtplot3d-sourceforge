@@ -1,12 +1,26 @@
-#include "qwt3d_gridplot.h"
+#include "qwt3d_surfaceplot.h"
 #include "qwt3d_function.h"
 #include "qwt3d_plot.h"
 #include "enrichments.h"
 
 
-#include "ui_enrichmentmainwindowbase.h"
+#if QT_VERSION < 0x040000
+#include "enrichmentmainwindowbase.h"
+#else
+#include "ui_enrichmentmainwindowbase4.h"
+#endif
 
 //MOC_SKIP_BEGIN
+#if QT_VERSION < 0x040000
+  class DummyBase : public EnrichmentMainWindowBase
+  {
+  public:
+    DummyBase(QWidget* parent = 0) 
+      : EnrichmentMainWindowBase(parent) 
+    {
+    } 
+  };
+#else
   class DummyBase : public QMainWindow, protected Ui::MainWindow
   {
   public:
@@ -15,6 +29,7 @@
     {
     } 
   };
+#endif
 //MOC_SKIP_END
 
 
@@ -27,7 +42,7 @@ public:
 	~EnrichmentMainWindow();
   void setColor();
   Bar *bar;
-  Qwt3D::GridPlot* plot;
+  Qwt3D::SurfacePlot* plot;
 
 public slots:
   void setLevel(int);

@@ -1,12 +1,12 @@
   //-----------------------------------------------------------------
   //              simpleplot.cpp
   //
-  //      A simple example which shows how to use GridPlot
+  //      A simple example which shows how to use SurfacePlot
   //-----------------------------------------------------------------
 
   #include <math.h>
   #include <qapplication.h>
-  #include <qwt3d_gridplot.h>
+  #include <qwt3d_surfaceplot.h>
   #include <qwt3d_function.h>
   
 
@@ -16,7 +16,7 @@
   {
   public:
 
-    Rosenbrock(GridPlot& pw)
+    Rosenbrock(SurfacePlot& pw)
     :Function(pw)
     {
     }
@@ -28,7 +28,7 @@
   };
 
 
-  class Plot : public GridPlot
+  class Plot : public SurfacePlot
   {
   public:
       Plot();
@@ -37,7 +37,7 @@
 
   Plot::Plot()
   {
-    setTitle("A Simple GridPlot Demonstration");
+    setTitle("A Simple SurfacePlot Demonstration");
     
     Rosenbrock rosenbrock(*this);
 
@@ -74,6 +74,9 @@
   {
       QApplication a(argc, argv);
       Plot plot;
+#if QT_VERSION < 0x040000
+      a.setMainWidget(&plot);
+#endif
       plot.resize(800,600);
       plot.show();
       return a.exec();

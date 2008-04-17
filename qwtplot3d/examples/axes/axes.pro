@@ -6,5 +6,10 @@ SOURCES =  src/main.cpp \
 HEADERS =  src/axesmainwindow.h \
            src/axes.h
 
-FORMS =  src/axesmainwindowbase.ui
+!isEmpty( ISQT4 ) {
+  FORMS =  src/axesmainwindowbase4.ui
+}
+isEmpty( ISQT4 ) {
+  FORMS =  src/axesmainwindowbase.ui
+}
 

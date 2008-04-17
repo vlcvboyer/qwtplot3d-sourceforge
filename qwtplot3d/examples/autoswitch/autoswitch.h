@@ -2,16 +2,16 @@
 #define AUTOSWITCH_H__
 
 #include <qtimer.h>
-#include "qwt3d_gridplot.h"
+#include "qwt3d_surfaceplot.h"
 #include "qwt3d_function.h"
 
-typedef Qwt3D::GridPlot GridPlot; // VC6/moc issue
+typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
 typedef Qwt3D::Function Function; // VC6/moc issue
 
 class Saddle : public Function
 {
 public:
-	Saddle(GridPlot& pw)
+	Saddle(SurfacePlot& pw)
 	:Function(pw)
 	{
 		setDomain(-2.5,2.5,-2.5,2.5);
@@ -30,7 +30,7 @@ class Hat : public Function
 {
 public:
 
-	Hat(GridPlot& pw)
+	Hat(SurfacePlot& pw)
 	:Function(pw)
 	{
 		setDomain(-1.5,1.5,-1.5,1.5);
@@ -43,7 +43,7 @@ public:
 	}
 };
 
-class Plot : public GridPlot
+class Plot : public SurfacePlot
 {
 	Q_OBJECT
 

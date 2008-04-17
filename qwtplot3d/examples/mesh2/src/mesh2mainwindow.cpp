@@ -1,6 +1,5 @@
-#include <fstream>
-
 #include <qmetaobject.h>
+
 #include <qframe.h>
 #include <qlabel.h>
 #include <qpushbutton.h>
@@ -9,6 +8,11 @@
 #include <qwhatsthis.h>
 #include <qaction.h>
 #include <qmenubar.h>
+
+#if QT_VERSION < 0x040000
+#include <qpopupmenu.h>
+#endif
+
 #include <qtoolbar.h>
 #include <qimage.h>
 #include <qpixmap.h>
@@ -28,6 +32,7 @@
 #include "functions.h"
 #include "colormapreader.h"
 #include "lightingdlg.h"
+#include "femreader.h"
 #include "../../../include/qwt3d_io.h"
 #include "../../../include/qwt3d_io_gl2ps.h"
 #include "../../../include/qwt3d_io_reader.h"
@@ -35,6 +40,24 @@
 using namespace Qwt3D;
 using namespace std;
 
+
+bool Mesh2MainWindow::connectA (const QObject* sender, const char * slot)
+{
+#if QT_VERSION < 0x040000
+    return connect( sender, SIGNAL( activated() ), this, slot );
+#else
+    return connect( sender, SIGNAL( triggered() ), this, slot );
+#endif
+}
+
+bool Mesh2MainWindow::connectAG (const QObject* sender, const char * slot)
+{
+#if QT_VERSION < 0x040000
+    return connect( sender, SIGNAL( selected( QAction* ) ), this, slot ) ;
+#else
+    return connect( sender, SIGNAL( triggered( QAction* ) ), this, slot ) ;
+#endif
+}
 
 Mesh2MainWindow::~Mesh2MainWindow()      
 {
@@ -44,38 +67,44 @@ Mesh2MainWindow::~Mesh2MainWindow()
 Mesh2MainWindow::Mesh2MainWindow( QWidget* parent )       
 	: DummyBase( parent )
 {
+#if QT_VERSION < 0x040000
+	setCaption("Mesh2");      
+  QGridLayout *grid = new QGridLayout( frame, 0, 0 );
+#else
   setupWorkaround(this);
 	setupUi(this);
   QGridLayout *grid = new QGridLayout( frame );
-
+#endif   
+  
   col_ = 0;
 	legend_ = false;
 	redrawWait = 50;
 	activeCoordSystem = None;
 
-  dataWidget = new GridPlot(frame);
+  dataWidget = new SurfacePlot(frame);
   grid->addWidget( dataWidget, 0, 0 );
 
-
-	connect( coord, SIGNAL( triggered( QAction* ) ), this, SLOT( pickCoordSystem( QAction* ) ) );
-	connect( plotstyle, SIGNAL( triggered( QAction* ) ), this, SLOT( pickPlotStyle( QAction* ) ) );
-	connect( axescolor, SIGNAL( triggered() ), this, SLOT( pickAxesColor() ) );
-	connect( backgroundcolor, SIGNAL( triggered() ), this, SLOT( pickBgColor() ) );
-	connect( floorstyle, SIGNAL( triggered( QAction* ) ), this, SLOT( pickFloorStyle( QAction* ) ) );
-	connect( meshcolor, SIGNAL( triggered() ), this, SLOT( pickMeshColor() ) );
-	connect( numbercolor, SIGNAL( triggered() ), this, SLOT( pickNumberColor() ) );
-	connect( labelcolor, SIGNAL( triggered() ), this, SLOT( pickLabelColor() ) );
-	connect( titlecolor, SIGNAL( triggered() ), this, SLOT( pickTitleColor() ) );
-	connect( datacolor, SIGNAL( triggered() ), this, SLOT( pickDataColor() ) );
+	connectAG( coord, SLOT( pickCoordSystem( QAction* ) ) );
+	connectAG( plotstyle, SLOT( pickPlotStyle( QAction* ) ) );
+	connectA( axescolor, SLOT( pickAxesColor() ) );
+	connectA( backgroundcolor, SLOT( pickBgColor() ) );
+	connectAG( floorstyle, SLOT( pickFloorStyle( QAction* ) ) );
+	connectA( meshcolor, SLOT( pickMeshColor() ) );
+	connectA( numbercolor, SLOT( pickNumberColor() ) );
+	connectA( labelcolor, SLOT( pickLabelColor() ) );
+	connectA( titlecolor, SLOT( pickTitleColor() ) );
+	connectA( datacolor, SLOT( pickDataColor() ) );
 	connect( lighting, SIGNAL( clicked() ), this, SLOT( pickLighting() ) );
-	connect( resetcolor, SIGNAL( triggered() ), this, SLOT( resetColors() ) );
- 	connect( numberfont, SIGNAL( triggered() ), this, SLOT( pickNumberFont() ) );
-	connect( labelfont, SIGNAL( triggered() ), this, SLOT( pickLabelFont() ) );
-	connect( titlefont, SIGNAL( triggered() ), this, SLOT( pickTitleFont() ) );
-	connect( resetfont, SIGNAL( triggered() ), this, SLOT( resetFonts() ) );
+	connectA( resetcolor, SLOT( resetColors() ) );
+ 	connectA( numberfont, SLOT( pickNumberFont() ) );
+	connectA( labelfont, SLOT( pickLabelFont() ) );
+	connectA( titlefont, SLOT( pickTitleFont() ) );
+	connectA( resetfont, SLOT( resetFonts() ) );
 	connect( animation, SIGNAL( toggled(bool) ) , this, SLOT( toggleAnimation(bool) ) );
-  connect( dump, SIGNAL( triggered() ) , this, SLOT( dumpImage() ) );
-	connect( openFile, SIGNAL( triggered() ) , this, SLOT( open() ) );
+    connectA( dump, SLOT( dumpImage() ) );
+	connectA( openFile, SLOT( open() ) );
+    //connect(openFile, SIGNAL(triggered()), this, SLOT(open()));
+	connectA( openMeshFile, SLOT( openMesh() ) );
 	
   // only EXCLUSIVE groups emit selected :-/
   connect( left, SIGNAL( toggled( bool ) ), this, SLOT( setLeftGrid( bool ) ) );
@@ -143,6 +172,21 @@ Mesh2MainWindow::Mesh2MainWindow( QWidget* parent )
 
   lightingdlg_ = new LightingDlg( this );
   lightingdlg_->assign( dataWidget);
+	
+#if QT_VERSION < 0x040000 //todo - restore, when Qt4 re-implements preview functionality
+	datacolordlg_ = new QFileDialog( this );
+	QDir dir("./../../data/colormaps");
+	if (dir.exists("./../../data/colormaps"))
+		datacolordlg_->setDir("./../../data/colormaps");
+	datacolordlg_->setFilter("Colormap files (*.map *.MAP)");
+	colormappv_ = new ColorMapPreview;
+  datacolordlg_->setContentsPreviewEnabled( TRUE );
+	datacolordlg_->setContentsPreview( colormappv_, colormappv_ );
+	datacolordlg_->setPreviewMode( QFileDialog::Contents );
+	connect(datacolordlg_, SIGNAL(fileHighlighted(const QString&)), this, SLOT(adaptDataColors(const QString&)));
+#else
+	//connect(datacolordlg_, SIGNAL(filesSelected(const QStringList&)), this, SLOT(adaptDataColors4(const QStringList&)));
+#endif  
 	connect(filetypeCB, SIGNAL(activated(const QString&)), this, SLOT(setFileType(const QString&)));
 
   filetypeCB->clear();
@@ -162,8 +206,11 @@ Mesh2MainWindow::Mesh2MainWindow( QWidget* parent )
   grids->setEnabled(false);
 
   PixmapWriter* pmhandler = (PixmapWriter*)IO::outputHandler("JPEG");
+  if (!pmhandler)
+    pmhandler = (PixmapWriter*)IO::outputHandler("jpeg"); //Qt4 naming scheme change
   if (pmhandler)
     pmhandler->setQuality(70);
+  
   VectorWriter* handler = (VectorWriter*)IO::outputHandler("PDF");
   handler->setTextMode(VectorWriter::TEX);
   handler = (VectorWriter*)IO::outputHandler("EPS");
@@ -175,24 +222,34 @@ Mesh2MainWindow::Mesh2MainWindow( QWidget* parent )
 
 void Mesh2MainWindow::open()
 {
+#if QT_VERSION < 0x040000
+  QString s = QFileDialog::getOpenFileName( "../../data", "GridData Files (*.mes *.MES)", this );
+#else
   QString s = QFileDialog::getOpenFileName( this, "", "../../data", "GridData Files (*.mes *.MES)");
+#endif
 
 	if ( s.isEmpty() || !dataWidget)
       return;
 	
   QFileInfo fi( s );
+
+#if QT_VERSION < 0x040000
+  QString ext = fi.extension();   // ext = "gz"
+	QToolTip::add(filenameWidget, s);
+#else
 	filenameWidget->setToolTip(s);
   QString ext = fi.suffix();
+#endif
 	filenameWidget->setText(fi.fileName());
     qApp->processEvents(); // enforces repaint;  
 
   if (IO::load(dataWidget, s, ext))
 	{
-//		double a = dataWidget->facets().first;
-//		double b = dataWidget->facets().second;
-//
-//		dimWidget->setText(QString("Cells ") + QString::number(a*b) 
-//			+ " (" + QString::number(a) + "x" + QString::number(b) +")" );
+		double a = dataWidget->facets().first;
+		double b = dataWidget->facets().second;
+
+		dimWidget->setText(QString("Cells ") + QString::number(a*b) 
+			+ " (" + QString::number(a) + "x" + QString::number(b) +")" );
 		
 		dataWidget->setResolution(3);
 	}
@@ -270,11 +327,11 @@ void Mesh2MainWindow::createFunction(QString const& name)
 		mex.create(*dataWidget);
 	}
 
-//	double a = dataWidget->facets().first;
-//	double b = dataWidget->facets().second;
-//
-//	dimWidget->setText(QString("Cells ") + QString::number(a*b) 
-//		+ " (" + QString::number(a) + "x" + QString::number(b) +")" );
+	double a = dataWidget->facets().first;
+	double b = dataWidget->facets().second;
+
+	dimWidget->setText(QString("Cells ") + QString::number(a*b) 
+		+ " (" + QString::number(a) + "x" + QString::number(b) +")" );
 
 	updateColorLegend(7,5);
 
@@ -319,17 +376,24 @@ void Mesh2MainWindow::createPSurface(QString const& name)
 		Dini dini(*dataWidget);
 		dini.create();
 	}
+	else if (name == QString("Cone")) 
+	{
+    TripleField conepos;
+    CellField conecell;
+    createCone(conepos,conecell);
+    dataWidget->loadFromData(conepos, conecell);
+	}
 	for (unsigned i=0; i!=dataWidget->coordinates()->axes.size(); ++i)
 	{
 		dataWidget->coordinates()->axes[i].setMajors(7);
 		dataWidget->coordinates()->axes[i].setMinors(5);
 	}
 
-//	double a = dataWidget->facets().first;
-//	double b = dataWidget->facets().second;
-//
-//	dimWidget->setText(QString("Cells ") + QString::number(a*b) 
-//		+ " (" + QString::number(a) + "x" + QString::number(b) +")" );
+	double a = dataWidget->facets().first;
+	double b = dataWidget->facets().second;
+
+	dimWidget->setText(QString("Cells ") + QString::number(a*b) 
+		+ " (" + QString::number(a) + "x" + QString::number(b) +")" );
 
 	updateColorLegend(7,5);
 
@@ -519,7 +583,6 @@ void Mesh2MainWindow::resetColors()
 
 void Mesh2MainWindow::pickAxesColor()
 {
-  
   QColor c = QColorDialog::getColor( Qt::white, this );
   if ( !c.isValid() )
 		return;
@@ -588,8 +651,12 @@ void Mesh2MainWindow::pickLighting()
 
 void Mesh2MainWindow::pickDataColor()
 {
+#if QT_VERSION < 0x040000
+	datacolordlg_->show();
+#else
   QString s =  QFileDialog::getOpenFileName( this, "", "./../../data/colormaps", "Colormap files (*.map *.MAP)");
   adaptDataColors(s);
+#endif
 }
 
 void Mesh2MainWindow::adaptDataColors(const QString& fileName)
@@ -674,7 +741,14 @@ void Mesh2MainWindow::dumpImage()
   else
 	  name += filetype_;
   
+#if QT_VERSION < 0x040000
+  IO::save(dataWidget, name.lower(), filetype_);
+#else
+  VectorWriter* vw = (VectorWriter*)IO::outputHandler("PDF");
+  if (vw)
+    vw->setSortMode(VectorWriter::BSPSORT);
   IO::save(dataWidget, name.toLower(), filetype_);
+#endif
 }
 
 /*!
@@ -766,6 +840,40 @@ void
 Mesh2MainWindow::showZoom(double z)		
 {
 	zoomLabel->setText(" Zoom "  + QString::number(z,'g',3)); 
+}
+
+void Mesh2MainWindow::openMesh()
+{
+#if QT_VERSION < 0x040000
+  QString data(QFileDialog::getOpenFileName( "../../data", "nodes (*.nod)", this ) );
+  QString edges( QFileDialog::getOpenFileName( "../../data", "connectivities (*.cel)", this ) );
+#else
+  QString data( QFileDialog::getOpenFileName( this, "", "../../data", "nodes (*.nod)") );
+  QString edges( QFileDialog::getOpenFileName( this, "", "../../data", "connectivities (*.cel)") );
+#endif
+ 
+	if ( data.isEmpty() || edges.isEmpty() || !dataWidget)
+      return;
+
+
+	TripleField vdata;
+	CellField vpoly;
+	
+  readNodes(vdata, QWT3DLOCAL8BIT(data), NodeFilter());
+	readConnections(vpoly, QWT3DLOCAL8BIT(edges), CellFilter());
+
+  dataWidget->loadFromData(vdata, vpoly);
+	dimWidget->setText(QString("Cells ") + QString::number(dataWidget->facets().first));
+
+ 	for (unsigned i=0; i!=dataWidget->coordinates()->axes.size(); ++i)
+	{
+		dataWidget->coordinates()->axes[i].setMajors(4);
+		dataWidget->coordinates()->axes[i].setMinors(5);
+		dataWidget->coordinates()->axes[i].setLabelString(QString(""));
+	}
+
+	updateColorLegend(4,5);
+	pickCoordSystem(activeCoordSystem);
 }
 
 void
